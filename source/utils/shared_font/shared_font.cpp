@@ -9,7 +9,6 @@
 
 namespace SharedFont {
 
-static const u32 SHARED_FONT_ADDR = 0x18000000;
 static const u32 SHARED_FONT_SIZE = 0x300000;
 
 void Dump() {
@@ -27,7 +26,9 @@ void Dump() {
     
     cmdbuf[0] = 0x00440000;
     svcSendSyncRequest(apt_handle);
+
     Handle mem_handle = cmdbuf[4];
+    void* shared_font_addr = reinterpret_cast<void*>(cmdbuf[2]);
     
     // Close APT handle...
     
@@ -35,7 +36,7 @@ void Dump() {
     
     // Map shared font memory...
     
-    svcMapMemoryBlock(mem_handle, 0, MEMPERM_READ, MEMPERM_MAX);
+    svcMapMemoryBlock(mem_handle, 0, MEMPERM_READ, MEMPERM_DONTCARE);
     
     // Dump shared font to SDMC...
     
@@ -46,7 +47,7 @@ void Dump() {
     
     FSUSER_OpenArchive(NULL, &sdmc_archive);
     FSUSER_OpenFile(NULL, &file_handle, sdmc_archive, fs_path, FS_OPEN_CREATE | FS_OPEN_WRITE, FS_ATTRIBUTE_NONE);
-    Result res = FSFILE_Write(file_handle, &bytes_written, 0x0, (u32*)SHARED_FONT_ADDR, SHARED_FONT_SIZE, FS_WRITE_FLUSH);
+    Result res = FSFILE_Write(file_handle, &bytes_written, 0x0, shared_font_addr, SHARED_FONT_SIZE, FS_WRITE_FLUSH);
     FSFILE_Close(file_handle);
     FSUSER_CloseArchive(NULL, &sdmc_archive);
     
